@@ -63,3 +63,123 @@ Gas Tip Cap   : 1440000 wei
 Gas Fee Cap   : 2121139250 wei
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ```
+
+
+
+
+## 任务 2：合约代码生成 任务目标
+
+描述
+```
+使用 abigen 工具自动生成 Go 绑定代码，用于与 Sepolia 测试网络上的智能合约进行交互。 具体任务
+
+编写智能合约
+使用 Solidity 编写一个简单的智能合约，例如一个计数器合约。
+编译智能合约，生成 ABI 和字节码文件。
+使用 abigen 生成 Go 绑定代码
+安装 abigen 工具。
+使用 abigen 工具根据 ABI 和字节码文件生成 Go 绑定代码。
+使用生成的 Go 绑定代码与合约交互
+编写 Go 代码，使用生成的 Go 绑定代码连接到 Sepolia 测试网络上的智能合约。
+调用合约的方法，例如增加计数器的值。
+输出调用结果。
+```
+
+### 开发步骤
+#### 1.创建hardhat3项目
+```
+kenny@anonymous task2 % mkdir hardhat3
+kenny@anonymous task2 % cd hardhat3 
+kenny@anonymous hardhat3 % npm init -y
+Wrote to /Users/kenny/ideaProjects/web3/MetaNode/golang-learning-kenny/homework5/task2/hardhat3/package.json:
+
+{
+  "name": "hardhat3",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}
+
+
+
+kenny@anonymous hardhat3 % npm install --save-dev hardhat@3.1.0
+
+added 59 packages in 5s
+
+14 packages are looking for funding
+  run `npm fund` for details
+kenny@anonymous hardhat3 % npx hardhat --init
+```
+#### 2. 部署合约
+hh3框架自带一个Counter合约，
+新建.env 配置下url和私钥
+然后进行合约部署
+```
+kenny@anonymous hardhat3 % npx hardhat ignition deploy ./ignition/modules/Counter.ts --network sepolia                                
+✔ Confirm deploy to network sepolia (11155111)? … yes
+Hardhat Ignition 🚀
+
+Resuming existing deployment from ./ignition/deployments/chain-11155111
+
+Deploying [ CounterModule ]
+
+Batch #1
+  Executed CounterModule#Counter
+
+Batch #2
+  Executed CounterModule#Counter.incBy
+
+[ CounterModule ] successfully deployed 🚀
+
+Deployed Addresses
+
+CounterModule#Counter - 0x2e843Ae3a37B00498E8f58b5E1ecE3822954Da02
+```
+
+#### 3. abigen操作
+安装abigen
+```
+kenny@anonymous task2 % go install github.com/ethereum/go-ethereum/cmd/abigen@latest
+kenny@anonymous task2 % abigen --version
+abigen version 1.17.3-stable
+```
+生成go文件
+```
+kenny@anonymous task2 % abigen \
+--abi <(jq -r '.abi' ./hardhat3/artifacts/contracts/Counter.sol/Counter.json) \
+--pkg=main \
+--type=Counter \
+--out=counter.go
+```
+
+#### 4. 执行
+```
+kenny@anonymous task2 % export ETH_RPC_URL=https://sepolia.drpc.org
+go run . -contract 0x2e843Ae3a37B00498E8f58b5E1ecE3822954Da02
+2026/05/23 17:03:07 ...读取当前计数...
+2026/05/23 17:03:08 当前计数: 7
+2026/05/23 17:03:08 ...调用incBy(2)增加计数...
+2026/05/23 17:03:11 交易已发送: 0x1c5f4eb0557d214d1f62d37ff0ce4f2005f0e18ca3556abd8f59e83729cb30e6
+2026/05/23 17:03:11 ...等待交易确认...
+2026/05/23 17:03:11 等待交易打包上链...
+2026/05/23 17:03:11 ⌛ 交易打包中...请稍等
+2026/05/23 17:03:14 ⌛ 交易打包中...请稍等
+2026/05/23 17:03:16 ⌛ 交易打包中...请稍等
+2026/05/23 17:03:18 ⌛ 交易打包中...请稍等
+2026/05/23 17:03:21 ⌛ 交易打包中...请稍等
+2026/05/23 17:03:23 ⌛ 交易打包中...请稍等
+2026/05/23 17:03:26 ⌛ 交易打包中...请稍等
+2026/05/23 17:03:28 ⌛ 交易打包中...请稍等
+2026/05/23 17:03:30 ⌛ 交易打包中...请稍等
+2026/05/23 17:03:33 ⌛ 交易打包中...请稍等
+2026/05/23 17:03:35 ⌛ 交易打包中...请稍等
+2026/05/23 17:03:38 ✅ 交易已上链！
+2026/05/23 17:03:40 ...再次读取当前计数...
+2026/05/23 17:03:40 新的计数: 9
+```
